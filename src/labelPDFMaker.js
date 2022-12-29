@@ -37,7 +37,6 @@ export const buildPDF = async () => {
     }
 
     if (count < 9) {
-      // doc.moveDown(10)
       doc.text(
         log, left, top, {
         columns: 2,
