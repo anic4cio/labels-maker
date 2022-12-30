@@ -1,11 +1,11 @@
 'use strict'
 import { LogLevel, WebClient } from '@slack/web-api'
-import { slackToken } from './envs'
+import envs from './envs.js'
 
 const channelId = ''
 
-const sendFileExtensionError = async filename => {
-  const client = new WebClient(slackToken, { logLevel: LogLevel.INFO })
+export const sendFileExtensionError = async filename => {
+  const client = new WebClient(envs.slackToken, { logLevel: LogLevel.INFO })
   const message = `Erro com arquivo *${filename}*. O arquivo deve estar no formato .txt`
   try {
     await client.chat.postMessage({
@@ -18,9 +18,9 @@ const sendFileExtensionError = async filename => {
   }
 }
 
-const sendReportToSlack = async params => {
+export const sendReportToSlack = async params => {
   const { filename, timestamp, pdfBuffer } = params
-  const client = new WebClient(slackToken, { logLevel: LogLevel.INFO })
+  const client = new WebClient(envs.slackToken, { logLevel: LogLevel.INFO })
   let pdfFileName = filename.replace('.txt', '.pdf')
   try {
     await client.files.uploadV2({
@@ -33,9 +33,4 @@ const sendReportToSlack = async params => {
     console.error('Failed to send report message to slack', error)
     throw error
   }
-}
-
-export default {
-  sendFileExtensionError,
-  sendReportToSlack,
 }
