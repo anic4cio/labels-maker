@@ -7,3 +7,4 @@ This project make a simple thing, turn a bunch of text to a PDF file appropriate
 * NodeJs
 * Slack
 * Google Cloud Functions
+* GitHub Actions
