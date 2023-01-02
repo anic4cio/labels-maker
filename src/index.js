@@ -104,7 +104,7 @@ Situação: ${status}
 Registrado sob n°: ${labelArr[0]}
 em ${date}
 Oficial: ${officer}`
-    formatedLabels.push([formatedLabel])
+    formatedLabels.push(formatedLabel)
   }
   return formatedLabels
 }
