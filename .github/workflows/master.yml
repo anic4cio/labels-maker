@@ -6,26 +6,26 @@ jobs:
   job_id:
     runs-on: ubuntu-latest
     permissions:
-      contents: "read"
-      id-token: "write"
+      contents: 'read'
+      id-token: 'write'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Auth
+      - id: 'auth'
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GOOGLE_CLOUD_KEY}}
-      - name: Deploy
-        uses: "google-github-actions/deploy-cloud-functions@v0"
+      - id: 'deploy'
+        uses: 'google-github-actions/deploy-cloud-functions@v1'
         with:
-          name: "labels-maker"
-          runtime: "nodejs16"
+          name: 'labels-maker'
+          runtime: 'nodejs16'
           entry_point: start
-          memory_mb: "256"
+          memory_mb: '256'
           region: southamerica-east1
           env_vars: CLOUD_FUNCTION_TOKEN=${{ secrets.CLOUD_FUNCTION_TOKEN }},SLACK_TOKEN=${{ secrets.SLACK_TOKEN }}
           project_id: cloud-test-634eb
-          service_account_email: "cloud-test-634eb@appspot.gserviceaccount.com"
-          timeout: "300"
-          max_instances: "3"
+          service_account_email: 'cloud-test-634eb@appspot.gserviceaccount.com'
+          timeout: '300'
+          max_instances: '3'
           https_trigger_security_level: secure_always
