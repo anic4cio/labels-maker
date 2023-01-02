@@ -13,5 +13,5 @@ export default req => {
       message: 'Must send body',
       success: false,
     }
-  return { code: 200, message: 'sucesso', success: true }
+  return { code: 200, message: 'sucess', success: true }
 }
