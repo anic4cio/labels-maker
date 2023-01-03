@@ -9,7 +9,7 @@ import fsPromise from 'fs/promises'
 import fs from 'fs'
 import os from 'os'
 
-export const start = async (req, res) => { 
+export const start = async (req, res) => {
   auth(req, res)
   reqValidator(req, res)
   const bb = busboy({ headers: req.headers })
@@ -21,7 +21,6 @@ export const start = async (req, res) => {
     console.info(`File [${name}] filename: ${filename}, encoding: ${encoding}`)
     const filepath = path.join(os.tmpdir(), name)
     uploads[name] = { file: filepath, filename }
-    console.info(`Saving '${name}' to ${filepath}`)
     const writeStream = fs.createWriteStream(filepath)
     file.pipe(writeStream)
     const promise = new Promise((resolve, reject) => {
@@ -33,9 +32,10 @@ export const start = async (req, res) => {
   })
   bb.on('close', async () => {
     await Promise.all(fileWrites)
-    await manageData({ uploads, res })
+    await handleWithFile({ uploads, res })
   })
   bb.end(req.rawBody)
+  res.status(200).send('success')
 }
 
 const reqValidator = (req, res) => {
@@ -46,64 +46,82 @@ const reqValidator = (req, res) => {
 
 const checkFileExtension = async filename => {
   if (!filename.endsWith('.txt')) {
-    res.status(200).send('success')
-    return await sendFileExtensionError(filename)
+    await sendFileExtensionError(filename)
+    throw new error(`File [${filename}] extension not allowed`)
   }
+  return res.status(200).send('success')
 }
 
-const manageData = async params => {
+const handleWithFile = async params => {
   const { uploads, res } = params
   const timestamp = res.body.ts
+  const officerName = getOfficerName(res.body)
   for (const name in uploads) {
     const { file, filename } = uploads[name]
-    const labels = await getLabelsFromFile(file)
-    const formatedLabels = buildLabels(labels)
-    const pdfBuffer = await buildPDFWithLabels(formatedLabels)
+    const registry = await getRegistryFromFile(file)
+    const labels = buildLabels(registry, officerName)
+    const pdfBuffer = await buildPDFWithLabels(labels)
     await sendReportToSlack({ filename, timestamp, pdfBuffer })
     fs.unlinkSync(file)
-    res.status(200).send('success')
   }
 }
 
-const getLabelsFromFile = async file => {
-  const buffer = await fsPromise.readFile(file)
-  const str = buffer.toString('latin1')
-  const logsArray = getLabelsArrayFromFile(str)
-  return logsArray
+const getOfficerName = body => {
+  const email = body.message.user.profile.email
+  if (!email) return undefined
+  if (email === 'karina@cartoriocolorado.com.br') return 'Karina B. Alves'
+  if (email === 'gabriel@cartoriocolorado.com.br') return 'Gabriel S. Chaves'
+  if (email === 'isaque@cartoriocolorado.com.br') return 'Isaque Henrique B. Novato'
+  if (email === 'laismarques@cartoriocolorado.com.br') return 'Laís M. S. Fidelis'
+  if (email === 'victor@cartoriocolorado.com.br') return 'André Victor A. de Sousa'
+  if (email === 'hellen@cartoriocolorado.com.br') return 'Hellen F. M. de Oliveira Arruda'
 }
 
-const getLabelsArrayFromFile = logsText => {
-  const text = logsText.trim().split(/[\n\r]+/g)
-  text.shift()
-  const logs = text.map(log => log
+const getRegistryFromFile = async file => {
+  const buffer = await fsPromise.readFile(file)
+  const str = buffer.toString('utf-8')
+  const registryArray = turnRegistryStringToArray(str)
+  return registryArray
+}
+
+const turnRegistryStringToArray = registryText => {
+  const text = registryText.trim().split(/[\n\r]+/g)
+  const validRegistry = validateRegistry(text)
+  const validatedRegistryArray = validRegistry.map(log => log
     .replace(/;;/g, ';')
     .replace(/  +/g, ' '))
-  return logs
+  return validatedRegistryArray
+}
+
+const validateRegistry = registryText => {
+  const fisrtItem = registryText[0]
+  const firstField = fisrtItem.split(';')
+  if (firstField[0] === 'REGISTRO') registryText.shift()
+  return registryText
 }
 
 const today = new Date()
   .toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
-  .split(',')[0]
+  .split(' ')[0]
 
-const buildLabels = labelsArray => {
+const buildLabels = (registryArray, officerName) => {
   const formatedLabels = []
-  for (let log of labelsArray) {
-    let labelArr = log.split(';')
+  for (let registry of registryArray) {
+    let label = registry.split(';')
     let status, date
-    if (labelArr.length !== 13) {
-      status = 'Positivo'
-      date = labelArr[9].split(' ')[0]
+    if (label.length !== 13) {
+      status = label[7]
+      date = label[9].split(' ')[0]
     } else {
-      status = `${labelArr[7]} - ${labelArr[8]}`
-      date = labelArr[10].split(' ')[0]
+      status = `${label[7]} - ${label[8]}`
+      date = label[10].split(' ')[0]
     }
-    let officer = 'Fulano de Tal'
     let formatedLabel =
 `AN.1 Data ${today}
 Situação: ${status}
-Registrado sob n°: ${labelArr[0]}
-em ${date}
-Oficial: ${officer}`
+Registrado sob n°: ${label[0]} em ${date}
+
+Oficial: ${officerName}`
     formatedLabels.push(formatedLabel)
   }
   return formatedLabels
