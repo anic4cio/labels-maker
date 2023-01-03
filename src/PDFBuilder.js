@@ -2,14 +2,15 @@
 import PDF from 'pdfkit'
 
 export default async labelLogsArray => {
+  const columnOnePositionLeft = 40
+  const columnTwoPositionLeft = 330
+  const textWidth = 510
+  const textHeight = 140
+  const topFirstLine = 60
+  const gap = 10
   let count = 1
-  let gap = 10
-  let textWidth = 510
-  let textHeight = 140
-  let top = 18
-  let left = 40
-  let top2 = 18
-  let left2 = 330
+  let topColumnOne = 18
+  let topColumnTwo = 18
 
   const doc = new PDF({ autoFirstPage: false })
   let buffers = []
@@ -24,60 +25,55 @@ export default async labelLogsArray => {
   for (let log of labelLogsArray) {
     if (count === 1) {
       doc.text(
-        log, left, 60, {
-        columns: 2,
+        log, columnOnePositionLeft, topFirstLine, {
         columnGap: gap,
         width: textWidth,
         height: 100,
       })
-      top += 130
+      topColumnOne += 130
       count++
       continue
     }
 
     if (count < 9) {
       doc.text(
-        log, left, top, {
-        columns: 2,
+        log, columnOnePositionLeft, topColumnOne, {
         columnGap: gap,
         width: textWidth,
         height: textHeight,
       })
-      top += 96
+      topColumnOne += 96
       count++
       continue
     }
 
     if (count === 9) {
       doc.text(
-        log, left2, 60, {
-        columns: 2,
+        log, columnTwoPositionLeft, topFirstLine, {
         columnGap: gap,
         height: textHeight,
         width: textWidth,
       })
-      top2 += 130
+      topColumnTwo += 130
       count++
       continue
     }
 
     if (count < 16) {
       doc.text(
-        log, left2, top2, {
-        columns: 2,
+        log, columnTwoPositionLeft, topColumnTwo, {
         columnGap: gap,
         width: textWidth,
         height: textHeight,
       })
-      top2 += 96
+      topColumnTwo += 96
       count++
       continue
     }
 
     if (count === 16) {
       doc.text(
-        log, left2, top2, {
-        columns: 2,
+        log, columnTwoPositionLeft, topColumnTwo, {
         columnGap: gap,
         width: textWidth,
         height: textHeight,
@@ -88,8 +84,8 @@ export default async labelLogsArray => {
         column: 2,
       }).fontSize(10)
       count = 1
-      top = 18
-      top2 = 18
+      topColumnOne = 18
+      topColumnTwo = 18
     }
   }
 
