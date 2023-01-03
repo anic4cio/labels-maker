@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "src/index.js",
+  "type": "module",
   "scripts": {
     "start": "node -r dotenv/config ./index",
     "dev": "npx nodemon -r dotenv/config ./index"
   },
-  "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",
