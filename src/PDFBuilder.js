@@ -1,13 +1,12 @@
 'use strict'
-import PDF from 'pdfkit'
+const PDF = require('pdfkit')
 
-export default async labelLogsArray => {
+module.exports = async labelLogsArray => {
   const columnOnePositionLeft = 40
   const columnTwoPositionLeft = 330
   const textWidth = 510
   const textHeight = 140
   const topFirstLine = 60
-  const gap = 10
   let count = 1
   let topColumnOne = 18
   let topColumnTwo = 18
@@ -26,10 +25,9 @@ export default async labelLogsArray => {
     if (count === 1) {
       doc.text(
         log, columnOnePositionLeft, topFirstLine, {
-        columnGap: gap,
-        width: textWidth,
-        height: 100,
-      })
+          width: textWidth,
+          height: 100,
+        })
       topColumnOne += 130
       count++
       continue
@@ -38,10 +36,9 @@ export default async labelLogsArray => {
     if (count < 9) {
       doc.text(
         log, columnOnePositionLeft, topColumnOne, {
-        columnGap: gap,
-        width: textWidth,
-        height: textHeight,
-      })
+          width: textWidth,
+          height: textHeight,
+        })
       topColumnOne += 96
       count++
       continue
@@ -50,10 +47,9 @@ export default async labelLogsArray => {
     if (count === 9) {
       doc.text(
         log, columnTwoPositionLeft, topFirstLine, {
-        columnGap: gap,
-        height: textHeight,
-        width: textWidth,
-      })
+          height: textHeight,
+          width: textWidth,
+        })
       topColumnTwo += 130
       count++
       continue
@@ -62,10 +58,9 @@ export default async labelLogsArray => {
     if (count < 16) {
       doc.text(
         log, columnTwoPositionLeft, topColumnTwo, {
-        columnGap: gap,
-        width: textWidth,
-        height: textHeight,
-      })
+          width: textWidth,
+          height: textHeight,
+        })
       topColumnTwo += 96
       count++
       continue
@@ -74,10 +69,9 @@ export default async labelLogsArray => {
     if (count === 16) {
       doc.text(
         log, columnTwoPositionLeft, topColumnTwo, {
-        columnGap: gap,
-        width: textWidth,
-        height: textHeight,
-      })
+          width: textWidth,
+          height: textHeight,
+        })
       doc.addPage({
         size: 'A4',
         font: 'Courier',
