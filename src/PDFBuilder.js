@@ -1,7 +1,7 @@
 'use strict'
-const PDF = require('pdfkit')
+import PDF from 'pdfkit'
 
-module.exports = async labelLogsArray => {
+export default async labelLogsArray => {
   const columnOnePositionLeft = 40
   const columnTwoPositionLeft = 330
   const textWidth = 510
@@ -18,7 +18,6 @@ module.exports = async labelLogsArray => {
   doc.addPage({
     size: 'A4',
     font: 'Courier',
-    column: 2,
   }).fontSize(10)
 
   for (let log of labelLogsArray) {
@@ -75,7 +74,6 @@ module.exports = async labelLogsArray => {
       doc.addPage({
         size: 'A4',
         font: 'Courier',
-        column: 2,
       }).fontSize(10)
       count = 1
       topColumnOne = 18
