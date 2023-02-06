@@ -1,7 +1,7 @@
 'use strict'
-import envs from './envs.js'
+const envs = require('./envs.js')
 
-export default (req, res) => {
+module.exports = (req, res) => {
   const authenticate = () => {
     const tokenReceived = req.headers?.['x-access-token']
     if (tokenReceived) {
