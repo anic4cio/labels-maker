@@ -1,19 +1,23 @@
 'use strict'
-import buildPDFWithLabels from './PDFBuilder.js'
-import validator from './requestValidator.js'
-import { sendReportToSlack, sendFileExtensionError } from './reportSender.js'
-import auth from './auth.js'
-import busboy from 'busboy'
-import path from 'path'
-import fsPromise from 'fs/promises'
-import fs from 'fs'
-import os from 'os'
+const buildPDFWithLabels = require('./PDF4Columns.js')
+const validator = require('./requestValidator.js')
+const {
+  sendReportToSlack,
+  sendFileExtensionError,
+  sendUnknownUserError,
+} = require('./reportSender.js')
+const auth = require('./auth.js')
+const busboy = require('busboy')
+const path = require('path')
+const fsPromise = require('fs/promises')
+const fs = require('fs')
+const os = require('os')
 
-export const start = async (req, res) => {
+exports.start = async (req, res) => {
   auth(req, res)
   reqValidator(req, res)
-  const bb = busboy({ headers: req.headers })
   const body = {}, uploads = {}, fileWrites = []
+  const bb = busboy({ headers: req.headers })
   bb.on('file', async (name, file, info) => {
     const { filename, encoding } = info
     await checkFileExtension(filename)
@@ -34,8 +38,8 @@ export const start = async (req, res) => {
   })
   bb.on('close', async () => {
     await Promise.all(fileWrites)
-    // await handleWithFile({ uploads, body })
-    console.log(body)
+    const { userId, timestamp } = getUserIdAndTimestamp(body.data)
+    await handleWithFile({ uploads, userId, timestamp })
     res.status(200).send('success')
   })
   bb.end(req.rawBody)
@@ -50,34 +54,41 @@ const reqValidator = (req, res) => {
 const checkFileExtension = async filename => {
   if (!filename.endsWith('.txt')) {
     await sendFileExtensionError(filename)
-    throw new error(`File [${filename}] extension not allowed`)
+    throw new Error(`File [${filename}] extension not allowed`)
   }
-  return res.status(200).send('success')
 }
 
-// const handleWithFile = async params => {
-//   const { uploads, body } = params
-//   const timestamp = body.message.ts
-//   const message = body.message
-//   const officerName = await getOfficerName(message)
-//   if (!officerName) return
-//   for (const name in uploads) {
-//     const { file, filename } = uploads[name]
-//     const registryArray = await getRegistryFromFile(file)
-//     const registryFields = getRegistryFields(registryArray)
-//     const labels = buildLabels(registryFields, officerName)
-//     const pdfBuffer = await buildPDFWithLabels(labels)
-//     const pdfExtensionFilename = renameFile(filename)
-//     await sendReportToSlack({ pdfExtensionFilename, timestamp, pdfBuffer })
-//     fs.unlinkSync(file)
-//   }
-// }
+const getUserIdAndTimestamp = bodyData => {
+  const arrayFields = bodyData.split('&')
+  const getIdField = i => i.includes('message__user__id=')
+  const getTsField = i => i.includes('message__ts=')
+  const idField = arrayFields.filter(getIdField)[0]
+  const tsField = arrayFields.filter(getTsField)[0]
+  const userId = idField.split('=')[1]
+  const timestamp = tsField.split('=')[1]
+  return { userId, timestamp }
+}
+
+const handleWithFile = async params => {
+  const { uploads, userId, timestamp } = params
+  const officerName = await getOfficerName({ userId, timestamp })
+  if (!officerName) return
+  for (const name in uploads) {
+    const { file, filename } = uploads[name]
+    const registryArray = await getRegistryFromFile(file)
+    const registryFields = getRegistryFields(registryArray)
+    const labels = buildLabels(registryFields, officerName)
+    const pdfBuffer = await buildPDFWithLabels(labels)
+    const pdfExtensionFilename = renameFile(filename)
+    await sendReportToSlack({ pdfExtensionFilename, timestamp, pdfBuffer })
+    fs.unlinkSync(file)
+  }
+}
 
 const renameFile = filename => filename.replace('.txt', '.pdf')
 
-const getOfficerName = async message => {
-  const id = message.user.id
-  const timestamp = message.ts
+const getOfficerName = async params => {
+  const { userId, timestamp } = params
   const names = [
     ['1', 'Aline'],
     ['2', 'Bruna'],
@@ -87,7 +98,7 @@ const getOfficerName = async message => {
     ['6', 'Monica'],
   ]
   try {
-    return names.find(name => name[0] === id)[1]
+    return names.find(name => name[0] === userId)[1]
   } catch (err) {
     console.error(err)
     await sendUnknownUserError(timestamp)
@@ -116,10 +127,6 @@ const sanitizeContent = registryText => {
   if (firstField[0] === 'REGISTRO') registryText.shift()
   return registryText
 }
-
-const today = new Date()
-  .toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
-  .split(' ')[0].replace(',', '')
 
 const getRegistryFields = registryArray => {
   return registryArray.map(register => {
@@ -152,8 +159,12 @@ const getStatusField = register => {
   return status
 }
 
-const buildLabels = (registryFields, officerName) => {
-  return registryFields.map(field => {
+const today = new Date()
+  .toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
+  .split(' ')[0].replace(',', '')
+
+const buildLabels = (registryArrayFields, officerName) => {
+  return registryArrayFields.map(field => {
     return `AN.1 Data ${today}
   Situação: ${field.status}
   Registrado sob n°:
