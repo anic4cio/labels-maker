@@ -1,10 +1,10 @@
 'use strict'
-import { LogLevel, WebClient } from '@slack/web-api'
-import envs from './envs.js'
+const { LogLevel, WebClient } = require('@slack/web-api')
+const envs = require('./envs.js')
 
-const channelId = ''
+const channelId = 'C04HGA6RPTL'
 
-export const sendFileExtensionError = async filename => {
+const sendFileExtensionError = async filename => {
   const client = new WebClient(envs.slackToken, { logLevel: LogLevel.INFO })
   const message = `Erro com arquivo *${filename}*. O arquivo deve estar no formato .txt`
   try {
@@ -18,19 +18,39 @@ export const sendFileExtensionError = async filename => {
   }
 }
 
-export const sendReportToSlack = async params => {
-  const { filename, timestamp, pdfBuffer } = params
+const sendUnknownUserError = async timestamp => {
   const client = new WebClient(envs.slackToken, { logLevel: LogLevel.INFO })
-  let pdfFileName = filename.replace('.txt', '.pdf')
+  const message = `Usuário não reconhecido, não foi possível gerar o PDF.`
+  try {
+    await client.chat.postMessage({
+      channel: channelId,
+      text: message,
+      thread_ts: timestamp
+    })
+  } catch (error) {
+    console.error('Failed to send unknown user message to slack', error)
+    throw error
+  }
+}
+
+const sendReportToSlack = async params => {
+  const { pdfExtensionFilename, timestamp, pdfBuffer } = params
+  const client = new WebClient(envs.slackToken, { logLevel: LogLevel.INFO })
   try {
     await client.files.uploadV2({
       channel_id: channelId,
       file: pdfBuffer,
-      filename: pdfFileName,
-      thread_ts: timestamp,
+      filename: pdfExtensionFilename,
+      thread_ts: timestamp
     })
   } catch (error) {
     console.error('Failed to send report message to slack', error)
     throw error
   }
+}
+
+module.exports = {
+  sendFileExtensionError,
+  sendReportToSlack,
+  sendUnknownUserError
 }

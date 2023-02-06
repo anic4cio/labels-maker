@@ -1,22 +1,23 @@
 {
-  "name": "labels",
+  "name": "labels-maker",
   "version": "1.0.0",
-  "description": "",
+  "description": "An application to make a PDF file in labels format. From text provides by Slack, and send PDF back to Slack",
   "main": "src/index.js",
-  "type": "module",
   "scripts": {
-    "start": "node -r dotenv/config ./index",
-    "dev": "npx nodemon -r dotenv/config ./index"
+    "build": "tsc -m commonjs -t es2016 --esModuleInterop",
+    "start": "node -r dotenv/config ./src/index"
   },
   "keywords": [],
-  "author": "",
+  "author": "Vinicius Anic4cio",
   "license": "ISC",
   "dependencies": {
     "@slack/web-api": "^6.8.0",
     "axios": "^1.2.2",
     "busboy": "^1.6.0",
     "dotenv": "^16.0.2",
-    "firebase-admin": "^11.1.0",
     "pdfkit": "^0.13.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.31.0"
   }
 }
