@@ -31,10 +31,11 @@ export const start = async (req, res) => {
   })
   bb.on('field', async (fieldname, val) => {
     body[fieldname] = val
-    await handleWithFile({ uploads, body })
   })
   bb.on('close', async () => {
     await Promise.all(fileWrites)
+    // await handleWithFile({ uploads, body })
+    console.log(body)
     res.status(200).send('success')
   })
   bb.end(req.rawBody)
@@ -54,23 +55,23 @@ const checkFileExtension = async filename => {
   return res.status(200).send('success')
 }
 
-const handleWithFile = async params => {
-  const { uploads, body } = params
-  const timestamp = body.message.ts
-  const message = body.message
-  const officerName = await getOfficerName(message)
-  if (!officerName) return
-  for (const name in uploads) {
-    const { file, filename } = uploads[name]
-    const registryArray = await getRegistryFromFile(file)
-    const registryFields = getRegistryFields(registryArray)
-    const labels = buildLabels(registryFields, officerName)
-    const pdfBuffer = await buildPDFWithLabels(labels)
-    const pdfExtensionFilename = renameFile(filename)
-    await sendReportToSlack({ pdfExtensionFilename, timestamp, pdfBuffer })
-    fs.unlinkSync(file)
-  }
-}
+// const handleWithFile = async params => {
+//   const { uploads, body } = params
+//   const timestamp = body.message.ts
+//   const message = body.message
+//   const officerName = await getOfficerName(message)
+//   if (!officerName) return
+//   for (const name in uploads) {
+//     const { file, filename } = uploads[name]
+//     const registryArray = await getRegistryFromFile(file)
+//     const registryFields = getRegistryFields(registryArray)
+//     const labels = buildLabels(registryFields, officerName)
+//     const pdfBuffer = await buildPDFWithLabels(labels)
+//     const pdfExtensionFilename = renameFile(filename)
+//     await sendReportToSlack({ pdfExtensionFilename, timestamp, pdfBuffer })
+//     fs.unlinkSync(file)
+//   }
+// }
 
 const renameFile = filename => filename.replace('.txt', '.pdf')
 
@@ -78,12 +79,12 @@ const getOfficerName = async message => {
   const id = message.user.id
   const timestamp = message.ts
   const names = [
-    ['U4DHS9FB6', 'Karina B. Alves'],
-    ['UQ02MQ006', 'Gabriel S. Chaves'],
-    ['U037CL9A8F6', 'Isaque Henrique B. Novato'],
-    ['U4E889XMF', 'Laís M. S. Fidelis'],
-    ['U02F4F2M9U4', 'André Victor A. de Sousa'],
-    ['U04503LN5PH', 'Hellen F. M. de Oliveira Arruda'],
+    ['1', 'Aline'],
+    ['2', 'Bruna'],
+    ['3', 'Raquel'],
+    ['4', 'Julia'],
+    ['5', 'Luana'],
+    ['6', 'Monica'],
   ]
   try {
     return names.find(name => name[0] === id)[1]
