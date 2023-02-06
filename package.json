@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "An application to make a PDF file in labels format. From text provides by Slack, and send PDF back to Slack",
   "main": "src/index.js",
-  "type": "module",
   "scripts": {
     "build": "tsc -m commonjs -t es2016 --esModuleInterop",
     "start": "node -r dotenv/config ./src/index"
