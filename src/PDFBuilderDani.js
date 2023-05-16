@@ -2,11 +2,11 @@
 const PDF = require('pdfkit')
 
 module.exports = async labelLogsArray => {
-  const columnOnePositionLeft = 25
-  const columnTwoPositionLeft = 312
-  const textWidth = 260
+  const columnOnePositionLeft = 20
+  const columnTwoPositionLeft = 308
+  const textWidth = 268
   const textHeight = 170
-  const topFirstLine = 57
+  const topFirstLine = 45
   let count = 1
   let topColumnOne = 18
   let topColumnTwo = 18
@@ -29,7 +29,7 @@ module.exports = async labelLogsArray => {
           height: textHeight,
           align: 'justify'
         })
-      topColumnOne += 130
+      topColumnOne += 125
       count++
       continue
     }
@@ -41,7 +41,7 @@ module.exports = async labelLogsArray => {
           height: textHeight,
           align: 'justify'
         })
-      topColumnOne += 96
+      topColumnOne += 95
       count++
       continue
     }
@@ -53,7 +53,7 @@ module.exports = async labelLogsArray => {
           width: textWidth,
           align: 'justify'
         })
-      topColumnTwo += 130
+      topColumnTwo += 125
       count++
       continue
     }
@@ -65,7 +65,7 @@ module.exports = async labelLogsArray => {
           height: textHeight,
           align: 'justify'
         })
-      topColumnTwo += 96
+      topColumnTwo += 95
       count++
       continue
     }
