@@ -2,12 +2,9 @@ const pdfBuilder = require('./PDFBuilderDani')
 const fs = require('fs');
 
 
-
-
-
 (async () => {
-
-  const text = fs.readFileSync('./averba.txt', 'utf8').trim()
+  const filename = 'labels-annotation'
+  const text = fs.readFileSync(`./${filename}.txt`, 'utf8').trim()
   const regex = /\r\n|\n/gi
   const arrayText = text.split(regex)
 
@@ -24,6 +21,6 @@ Oficial Auxiliar`
   console.log(formattedLabels.length)
   
   const pdfString = await pdfBuilder(formattedLabels)
-  fs.writeFile('averba.pdf', pdfString, () => {})
+  fs.writeFile(`${filename}.pdf`, pdfString, () => {})
   
 })()
