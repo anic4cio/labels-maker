@@ -15,14 +15,15 @@ module.exports = async labelLogsArray => {
   const buffers = []
   doc.on('data', buffers.push.bind(buffers))
 
-  doc.addPage({
-    size: 'A4',
-    font: 'Courier',
-    align: 'justify'
-  }).fontSize(6)
-
-  for (let log of labelLogsArray) {
+  
+  for (const log of labelLogsArray) {
     if (count === 1) {
+      doc.addPage({
+        size: 'A4',
+        font: 'Courier',
+        align: 'justify'
+      }).fontSize(6)
+
       doc.text(
         log, columnOnePositionLeft, topFirstLine, {
           width: textWidth,
@@ -77,10 +78,6 @@ module.exports = async labelLogsArray => {
           height: textHeight,
           align: 'justify'
         })
-      doc.addPage({
-        size: 'A4',
-        font: 'Courier'
-      }).fontSize(6)
       count = 1
       topColumnOne = 18
       topColumnTwo = 18
